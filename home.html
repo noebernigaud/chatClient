@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+
+</head>
+
+<body>
+
+    <div id="sse">
+        <label for="msg">Message:</label>
+        <input type="text" id="msg" name="msg" required minlength="1" maxlength="200" size="30">
+        <button id="validateButton" onclick="sendMyMessages()">Send</button>
+    </div>
+
+
+
+    <script type="text/javascript">
+        var ws = new WebSocket("ws://127.0.0.1:8080/");
+
+        var username = prompt("Enter your username: ");
+        if (username == null || username == "") {
+            username = "anonyme";
+        }
+
+        var inputField = document.getElementById("msg");
+        var inputFieldValue = "";
+
+        focusMethod = function getFocus(keepvalue = false) {
+            document.getElementById("msg").focus();
+            if (keepvalue) document.getElementById("msg").value = inputFieldValue;
+        }
+
+        focusMethod()
+
+        ws.addEventListener('message', function (event) {
+            inputFieldValue = document.getElementById("msg").value;
+            console.log(event.data);
+            let messageContent = JSON.parse(event.data);
+            document.getElementById("sse").innerHTML += "</br>" + messageContent.user + " (" + messageContent.time + ") : " + messageContent.content;
+            focusMethod(true)
+        });
+
+        document.getElementById("msg").addEventListener("keypress", function (event) {
+            console.log("pressed key in input")
+            if (event.key === "Enter") {
+                console.log("pressed enter in input")
+                document.getElementById("validateButton").click();
+            }
+        });
+
+        function sendMyMessages() {
+            let sendMessage = document.getElementById("msg").value
+            let date = new Date();
+            sendMessage = "{\"user\":\"" + username + "\", \"time\":\"" + ('0' + date.getHours()).slice(-2) + "h" + ('0' + date.getMinutes()).slice(-2) + "\", \"content\":\"" + sendMessage + "\"}";
+            console.log("sending to backend --- " + sendMessage)
+            ws.send(sendMessage);
+            document.getElementById("msg").value = ""
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,20 @@
+[package]
+name = "tokyo_server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio-tungstenite = "*"
+tungstenite = "*"
+log = "0.4"
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+tokio = { version = "1.0.0", default-features = false, features = ["io-util", "io-std", "macros", "net", "rt-multi-thread", "time"] }
+futures-channel = "0.3"
+url = "2.0.0"
+env_logger = "0.9"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = "0.4"
+tokio-js-set-interval = "1.1.0"
