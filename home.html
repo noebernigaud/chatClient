@@ -7,6 +7,7 @@
 
 <body>
 
+    <div id="userlist"></div>
     <div id="sse">
         <label for="msg">Message:</label>
         <input type="text" id="msg" name="msg" required minlength="1" maxlength="200" size="30">
@@ -16,12 +17,23 @@
 
 
     <script type="text/javascript">
-        var ws = new WebSocket("wss://rocky-wave-51234.herokuapp.com/");
+        //RUNNING SERVER ON HEROKU FOR DEPLOYMENT
+        var ws = new WebSocket("ws://127.0.0.1:8080");
+        //RUNNING SERVER ON LOCAL FOR DEV
+        //var ws = new WebSocket("ws://127.0.0.1:8080");
 
         var username = prompt("Enter your username: ");
         if (username == null || username == "") {
             username = "anonyme";
         }
+
+        setTimeout(() => ws.send(
+            JSON.stringify(
+                {
+                    route: "login",
+                    content: username
+                })),
+            100);
 
         var inputField = document.getElementById("msg");
         var inputFieldValue = "";
@@ -35,9 +47,28 @@
 
         ws.addEventListener('message', function (event) {
             inputFieldValue = document.getElementById("msg").value;
-            console.log(event.data);
-            let messageContent = JSON.parse(event.data);
-            document.getElementById("sse").innerHTML += "</br>" + messageContent.user + " (" + messageContent.time + ") : " + messageContent.content;
+            console.log("received message: " + event.data);
+            let messageReceived = JSON.parse(event.data);
+            switch (messageReceived.route) {
+                case 'login': {
+                    document.getElementById("sse").innerHTML += "</br><span style=\"color: grey\"><i>" + messageReceived.content + " connected</i></span>";
+                    break;
+                }
+                case 'logout': {
+                    document.getElementById("sse").innerHTML += "</br><span style=\"color: grey\"><i>" + messageReceived.content + " disconnected</i></span>";
+                    break;
+                }
+                case 'message': {
+                    let messageContent = JSON.parse(messageReceived.content);
+                    document.getElementById("sse").innerHTML += "</br><span style=\"color: " + messageReceived.color + "\">" + messageContent.user + "</span> (" + messageContent.time + ") : " + messageContent.content;
+                    break;
+                }
+                case 'userlist': {
+                    document.getElementById("userlist").innerHTML = "Currently connected: " + messageReceived.content + ".";
+                    break;
+                }
+                default: console.log("received a message from server with an invalid route: " + messageContent.route);
+            }
             focusMethod(true)
         });
 
@@ -52,11 +83,26 @@
         function sendMyMessages() {
             let sendMessage = document.getElementById("msg").value
             let date = new Date();
-            sendMessage = "{\"user\":\"" + username + "\", \"time\":\"" + ('0' + date.getHours()).slice(-2) + "h" + ('0' + date.getMinutes()).slice(-2) + "\", \"content\":\"" + sendMessage + "\"}";
+            //sendMessage = "{\"route\": \"message\", \"content\":\"{\"user\":\"" + username + "\", \"time\":\"" + ('0' + date.getHours()).slice(-2) + "h" + ('0' + date.getMinutes()).slice(-2) + "\", \"content\":\"" + sendMessage + "\"}\"}";
+            let contentMessage = JSON.stringify(
+                {
+                    user: username,
+                    time: ('0' + date.getHours()).slice(-2) + "h" + ('0' + date.getMinutes()).slice(-2),
+                    content: sendMessage
+                }
+            )
+            sendMessage = JSON.stringify(
+                {
+                    route: "message",
+                    content: contentMessage
+                }
+            )
             console.log("sending to backend --- " + sendMessage)
             ws.send(sendMessage);
             document.getElementById("msg").value = ""
         }
+
+        setInterval(() => { ws.send("keepalive") }, 20000);
     </script>
 </body>
 
