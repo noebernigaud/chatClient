@@ -4,3 +4,4 @@
 /target/release/deps/
 /target/release/examples/
 /target/release/incremental/
+/target/release/rustc_info.json

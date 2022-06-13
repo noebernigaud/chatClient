@@ -72,13 +72,21 @@
             focusMethod(true)
         });
 
-        document.getElementById("msg").addEventListener("keypress", function (event) {
+        document.addEventListener("keypress", function (event) {
             console.log("pressed key in input")
             if (event.key === "Enter") {
                 console.log("pressed enter in input")
                 document.getElementById("validateButton").click();
             }
         });
+
+        // document.getElementById("msg").addEventListener("keypress", function (event) {
+        //     console.log("pressed key in input")
+        //     if (event.key === "Enter") {
+        //         console.log("pressed enter in input")
+        //         document.getElementById("validateButton").click();
+        //     }
+        // });
 
         function sendMyMessages() {
             let sendMessage = document.getElementById("msg").value
